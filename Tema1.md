@@ -969,5 +969,3 @@ herança
 polimorfismo
 `groupingBy`
 `toString`
-
-Esse é o desafio “chefão” do Tema 1. Se você conseguir fazer esse, você está bem de verdade.
