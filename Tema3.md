@@ -1,234 +1,1405 @@
----
+# Tema 3 — Polimorfismo em Java
 
-# Resumo — Polimorfismo em Java
+## 1. Ideia central do tema
 
----
+O Tema 1 te deu a base de classe/objeto.
+O Tema 2 aprofundou herança.
+O **Tema 3 mostra como usar herança e interfaces para criar código flexível**.
 
-## Contexto histórico
+A palavra-chave aqui é:
 
-O conteúdo parte da crise do software dos anos 1960–70, quando sistemas estruturados se tornaram difíceis de manter. A resposta foi a Programação Orientada a Objetos (POO), centrada em reuso e manutenibilidade — contexto onde polimorfismo e interfaces ganham protagonismo.
-
----
-
-## Módulo 1 — Polimorfismo em Java
-
-### Classes e Métodos Abstratos
-
-Uma **classe abstrata** não pode ser instanciada; seu papel é fornecer uma interface e comportamentos comuns para as subclasses. Em Java, usa-se o modificador `abstract`:
-
-```java
-public abstract class Pessoa { ... }
+```text
+Contrato
 ```
 
-Um **método abstrato** não possui corpo e força a classe a ser abstrata. A implementação fica a cargo das subclasses:
+Ou seja: você define um comportamento esperado e deixa as classes concretas implementarem esse comportamento do jeito delas.
+
+Exemplo mental:
 
 ```java
-protected abstract void atualizarID(String identificador);
+Animal a = new Cachorro();
+Animal b = new Gato();
+
+a.emitirSom(); // Latir
+b.emitirSom(); // Miar
 ```
 
-Pontos importantes:
-- A abstração de um método se propaga pela hierarquia — uma subclasse que não implementar o método abstrato também será abstrata.
-- Uma classe abstrata **pode** ter atributos, construtores e métodos concretos.
-- Uma classe abstrata **pode** estender uma classe concreta, e vice-versa.
+A variável é do tipo geral `Animal`, mas o comportamento executado é o da classe real: `Cachorro` ou `Gato`.
 
-**Exemplo prático:** a classe `Pessoa` é abstrata, com o método `atualizarID` abstrato. As classes `Fisica` e `Juridica` o implementam cada uma com suas validações (CPF e CNPJ). Um vetor de referências do tipo `Pessoa` armazena objetos de ambas as subclasses — o sistema resolve em tempo de execução qual versão do método invocar. Isso é **polimorfismo**.
+Isso é polimorfismo.
 
 ---
 
-### 🧩 Desafio 1
-> Uma classe abstrata em Java é declarada pelo uso do modificador `abstract`. Qual afirmação está correta?
+# 2. Polimorfismo
 
-**Resposta correta:** Uma classe abstrata não permite instanciação, mas não altera as regras de herança — ela pode estender uma classe concreta e ser estendida por uma.
+Polimorfismo significa “muitas formas”.
 
----
+Na prática, em Java, significa que uma referência de tipo mais geral pode apontar para objetos de tipos mais específicos.
 
-### Métodos e Classes "final"
+Exemplo:
 
-O modificador `final` restringe modificações:
-
-- **Método `final`:** não pode ser redefinido (sobrescrito) nas subclasses.
-- **Classe `final`:** não pode ter subclasses; todos os seus métodos são implicitamente `final`.
-- **Variável `final`:** deve ser inicializada (na declaração ou no construtor) e não pode ter seu valor alterado depois.
-- Métodos `static` e `private` são implicitamente `final`.
-- O uso de `final` permite ao compilador realizar **otimizações de desempenho**.
-
----
-
-### 🧩 Desafio 2
-> Considere uma variável de referência `ref` declarada como `final`. O que ocorre ao tentar reatribuí-la?
-
-**Resposta correta:** A variável `ref` é `final`, não o objeto. Ela pode ser usada para chamar métodos e alterar o estado do objeto, mas **não pode referenciar outra instância** — a tentativa gera erro de compilação.
-
----
-
-### Upcasting e Downcasting
-
-Operações que reinterpretam referências dentro de uma hierarquia de herança:
-
-- **Upcasting:** referência da subclasse é reinterpretada como superclasse (implícito).
-- **Downcasting:** referência da superclasse é reinterpretada como subclasse (explícito).
-
-Essas operações **não mudam o objeto**, apenas a forma como o compilador o interpreta. O que é `private` continua inacessível independentemente do casting. Downcasting e upcasting só fazem sentido dentro da hierarquia — fora dela, trata-se de casting comum.
-
-Sobre variáveis protegidas: uma variável `protected` compartilhada na hierarquia ocupa o **mesmo espaço de memória**, portanto alterações em uma subclasse refletem na superclasse.
-
----
-
-### 🧩 Desafio 3
-> Julgue: (I) Downcasting muda o tipo do objeto. (II) Pode-se fazer casting fora da hierarquia. (III) Upcasting não permite invocar métodos `private` da superclasse.
-
-**Resposta correta:** Apenas **III** está correta. O casting não muda o objeto; casting fora da hierarquia não é down/upcasting; e restrições de acesso permanecem independente do casting.
-
----
-
-### Polimorfismo em Prática
-
-O polimorfismo ocorre quando um método é invocado por uma referência da superclasse e a versão especializada da subclasse é executada, com resolução em **tempo de execução** (vinculação dinâmica).
-
-No exemplo com `Pessoa`, `Fisica` e `Juridica`:
-- Um vetor de `Pessoa[]` armazena objetos de `Fisica` e `Juridica`.
-- Ao iterar e chamar `recuperarNome()` e `recuperarID()`, cada objeto executa sua própria implementação automaticamente.
-
-Benefício principal: **manutenibilidade** — adicionar uma nova subclasse não exige alterar o código que a consome.
-
----
-
-### 🧩 Desafio 4
-> Para que o comportamento polimórfico ocorra com `Derivada1` e `Derivada2`, como deve ser declarado o vetor na classe `Principal`?
-
-**Resposta correta:** O vetor deve ser do tipo **`Base`** — referências da superclasse permitem o polimorfismo, pois o sistema resolve em tempo de execução qual versão do método invocar.
-
----
-
-## Módulo 2 — A Entidade Interface de Java
-
-### Conceito de Interface
-
-Uma interface define um **contrato** de interação: especifica o que um objeto deve ser capaz de fazer, sem definir como. Analogia física: um mouse define quais interações são possíveis (botões, roda, movimento), mas cada modelo implementa isso à sua maneira.
-
-Em POO, a interface garante certas propriedades de um objeto, isolando os detalhes de implementação do mundo exterior.
-
----
-
-### Particularidades da Interface em Java
-
-Declaração:
 ```java
-public interface NomeDaInterface { ... }
+Pessoa p1 = new Fisica();
+Pessoa p2 = new Juridica();
 ```
 
-Características:
-- **Não pode ser instanciada** diretamente.
-- Não admite atributos de instância — apenas **constantes** (`static final`).
-- Pode conter: assinaturas de métodos abstratos, métodos `default`, métodos `static` e tipos aninhados.
-- Apenas métodos `default` e `static` podem ter implementação.
-- Todos os métodos são implicitamente **públicos**.
-- Admite **herança múltipla** (uma interface pode estender mais de uma superinterface).
-- Uma classe implementa uma interface com `implements` e pode implementar várias ao mesmo tempo.
-- A classe que implementa deve implementar **todos** os métodos abstratos e não pode reduzir a visibilidade deles.
+`p1` é declarado como `Pessoa`, mas o objeto real é `Fisica`.
+`p2` é declarado como `Pessoa`, mas o objeto real é `Juridica`.
 
----
+Quando você chama um método sobrescrito:
 
-### 🧩 Desafio 5
-> Sobre a entidade Interface de Java, qual afirmação está correta?
-
-**Resposta correta:** Interfaces **admitem herança múltipla** — diferente das classes em Java, que só herdam de uma superclasse.
-
----
-
-### Diferença entre Classe Abstrata e Interface
-
-| | Classe Abstrata | Interface |
-|---|---|---|
-| Instanciação | Não | Não |
-| Atributos de instância | Sim | Não (só constantes) |
-| Membros privados/protegidos | Sim | Não |
-| Herança múltipla | Não | Sim |
-| Propósito | Define um tipo abstrato | Define um contrato/capacidades |
-
-**Regra prática:** use interface para especificar capacidades; use classe abstrata para generalizar comportamentos e compartilhar código. Os dois conceitos são **complementares**, como demonstrado na API Java Collections.
-
----
-
-### 🧩 Desafio 6
-> Sobre interfaces em Java, qual afirmação está correta?
-
-**Resposta correta:** Interfaces permitem a **declaração de funcionalidades** (métodos), e estas devem ser definidas (implementadas) nas classes que a implementam.
-
----
-
-### 🧩 Desafio 7
-> Um código com interface `iTeste` apresenta erro de compilação. Qual a correção?
-
-**Resposta correta:** Substituir o corpo `{ }` do método na interface por `;` — interfaces não admitem definição de métodos comuns, mesmo que o corpo seja vazio.
-
----
-
-## Módulo 3 — Interface Avançada em Java
-
-### Aninhamento de Interfaces e Herança
-
-Uma interface pode ser declarada dentro de outra (**interface aninhada**). Características:
-
-- Interfaces aninhadas são implicitamente **estáticas**.
-- Quando declarada dentro de outra interface, só pode ser **pública**.
-- Quando declarada dentro de uma classe, pode ter qualquer modificador de acesso.
-- **Não existe herança entre interface externa e interna** — ser membro não implica herdar métodos.
-- O compilador gera um arquivo `.class` separado com o nome `Externa$Interna.class`.
-
-Uma classe pode implementar uma interface aninhada de outro pacote desde que use a referência completa (`Externa.Interna`). Se a interface aninhada pertencer a uma **classe** (não a uma interface), a classe implementadora precisa **estender** a classe externa para ter acesso à interface membro.
-
----
-
-### 🧩 Desafio 8
-> Julgue: (I) Classe só implementa interface aninhada se implementar a externa. (II) Interface que estende aninhada também estende a externa. (III) Referência completa é necessária mesmo no mesmo pacote.
-
-**Resposta correta:** Apenas **III** está correta — a interface aninhada só é acessível via referência à interface/classe externa, pois é membro dela.
-
----
-
-### Programação Funcional e Interface Funcional
-
-A partir do **Java 8**, foi introduzado suporte a expressões **lambda**, permitindo técnicas de programação funcional.
-
-Uma **expressão lambda** é uma função anônima com sintaxe:
 ```java
-(parâmetros) -> corpo
-// Exemplos:
-() -> 17;
-x -> x / 10;
+p1.atualizarID("12345678901");
+p2.atualizarID("12345678000199");
 ```
 
-Uma **Interface Funcional** (ou SAM — *Single Abstract Method*) é uma interface com **exatamente um método abstrato**, incluindo os herdados. Pode ser anotada com `@FunctionalInterface` para validação em tempo de compilação.
-
-Exemplos da API Java: `Comparator`, `Runnable`.
-
-Numa hierarquia, se a superinterface é funcional, as subinterfaces também são — **até que uma delas declare um novo método abstrato**, a partir de onde violam o critério SAM e deixam de ser funcionais, assim como suas derivadas.
+Java decide em tempo de execução qual método usar. O PDF chama isso de **vinculação dinâmica**, quando o sistema identifica o tipo real do objeto e executa o método adequado. 
 
 ---
 
-### 🧩 Desafio 9
-> Julgue afirmativas sobre Interface Funcional.
+# 3. Tipo estático e tipo dinâmico
 
-**Resposta correta:** A condição para ser funcional é possuir apenas **um método abstrato** (incluindo herdados). Numa hierarquia, o método herdado da superinterface mantém as subinterfaces funcionais — até que uma delas adicione outro método abstrato, quebrando o critério SAM para ela e suas derivadas.
+Esse ponto é essencial.
+
+```java
+Pessoa p = new Aluno();
+```
+
+Aqui:
+
+```text
+Tipo estático: Pessoa
+Tipo dinâmico: Aluno
+```
+
+O **tipo estático** é o tipo da variável:
+
+```java
+Pessoa p
+```
+
+O **tipo dinâmico** é o tipo real do objeto:
+
+```java
+new Aluno()
+```
+
+O compilador olha para o tipo estático para saber o que você pode chamar.
+
+Exemplo:
+
+```java
+Pessoa p = new Aluno();
+
+p.apresentar(); // pode, se Pessoa tiver apresentar()
+p.getMatricula(); // erro, se getMatricula() só existir em Aluno
+```
+
+Mesmo que o objeto real seja `Aluno`, a variável `p` é vista como `Pessoa`.
 
 ---
 
-### 🧩 Desafio 10
-> Um código com classe `IdUnico` (que contém interface privada aninhada `iCodigo`) e classe `Concreta` (que a estende) não compila. Qual a solução?
+# 4. Classe abstrata
 
-**Resposta correta:** É suficiente alterar o modificador da variável `seed` para **`protected`**. A interface `iCodigo` sendo privada aplica restrição apenas a ela, mas seu método `imprimeCod()` é público e pode ser implementado. O problema de compilação é o acesso à variável `seed` na subclasse.
+Uma **classe abstrata** é uma classe que **não pode ser instanciada diretamente**.
+
+Exemplo:
+
+```java
+public abstract class Pessoa {
+}
+```
+
+Você não pode fazer:
+
+```java
+Pessoa p = new Pessoa(); // erro
+```
+
+A classe abstrata serve como base/modelo para outras classes.
+
+O PDF explica que uma classe abstrata existe para fornecer uma interface comum e comportamentos comuns para as subclasses. Ela impede que você instancie uma classe genérica demais, como `Pessoa`, quando no sistema real você deveria usar algo mais específico, como `Fisica` ou `Juridica`. 
 
 ---
 
-## Resumo dos Tópicos Principais
+# 5. Método abstrato
 
-1. **Classes abstratas** definem contratos e comportamentos comuns sem permitir instanciação.
-2. **Métodos abstratos** adiam a implementação para as subclasses.
-3. **`final`** impede redefinição de métodos, herança de classes e reatribuição de variáveis.
-4. **Upcasting/Downcasting** reinterpretam referências dentro da hierarquia sem alterar o objeto.
-5. **Polimorfismo** resolve em tempo de execução qual versão de um método invocar.
-6. **Interfaces** definem contratos com herança múltipla, sem estado e sem implementação (exceto `default`/`static`).
-7. **Interfaces aninhadas** são membros estáticos públicos da entidade externa — sem herança entre externa e interna.
-8. **Programação funcional** é suportada via lambdas a partir do Java 8.
-9. **Interface funcional (SAM)** possui exatamente um método abstrato e integra-se com lambdas.
+Um **método abstrato** é um método sem corpo.
+
+Exemplo:
+
+```java
+public abstract void atualizarID(String identificador);
+```
+
+Ele termina com `;`, não tem `{ }`.
+
+Errado:
+
+```java
+public abstract void atualizarID(String identificador) {
+}
+```
+
+Certo:
+
+```java
+public abstract void atualizarID(String identificador);
+```
+
+Se uma classe tem pelo menos um método abstrato, a classe também precisa ser abstrata:
+
+```java
+public abstract class Pessoa {
+    public abstract void atualizarID(String identificador);
+}
+```
+
+O PDF reforça que um método abstrato não possui implementação e sua implementação fica “postergada” para uma subclasse concreta. Se a subclasse não implementar o método abstrato, ela também continua abstrata. 
+
+---
+
+# 6. Método concreto
+
+Método concreto é o método normal, com corpo.
+
+Exemplo:
+
+```java
+public String recuperarID() {
+    return identificador;
+}
+```
+
+Uma classe abstrata pode ter:
+
+```text
+atributos
+construtores
+métodos concretos
+métodos abstratos
+```
+
+Exemplo:
+
+```java
+public abstract class Pessoa {
+    protected String identificador;
+
+    public abstract void atualizarID(String identificador);
+
+    public String recuperarID() {
+        return identificador;
+    }
+}
+```
+
+Aqui:
+
+```java
+atualizarID()
+```
+
+é abstrato.
+
+```java
+recuperarID()
+```
+
+é concreto.
+
+---
+
+# 7. Classe concreta
+
+Uma classe concreta é uma classe que pode ser instanciada.
+
+Exemplo:
+
+```java
+public class Fisica extends Pessoa {
+    @Override
+    public void atualizarID(String cpf) {
+        this.identificador = cpf;
+    }
+}
+```
+
+Agora pode:
+
+```java
+Pessoa p = new Fisica();
+```
+
+Não porque `Pessoa` foi instanciada, mas porque `Fisica` foi instanciada e guardada em uma referência do tipo `Pessoa`.
+
+---
+
+# 8. Exemplo prático com classe abstrata
+
+```java
+public abstract class Animal {
+    public abstract void emitirSom();
+
+    public void dormir() {
+        System.out.println("Zzzz...");
+    }
+}
+```
+
+```java
+public class Cachorro extends Animal {
+    @Override
+    public void emitirSom() {
+        System.out.println("Latir!");
+    }
+}
+```
+
+```java
+public class Gato extends Animal {
+    @Override
+    public void emitirSom() {
+        System.out.println("Miar!");
+    }
+}
+```
+
+Uso:
+
+```java
+public class Main {
+    public static void main(String[] args) {
+        Animal cachorro = new Cachorro();
+        Animal gato = new Gato();
+
+        cachorro.emitirSom();
+        cachorro.dormir();
+
+        gato.emitirSom();
+        gato.dormir();
+    }
+}
+```
+
+Saída:
+
+```text
+Latir!
+Zzzz...
+Miar!
+Zzzz...
+```
+
+Esse exemplo mistura:
+
+```text
+herança
+polimorfismo
+classe abstrata
+método abstrato
+método concreto
+@Override
+```
+
+---
+
+# 9. `abstract` versus `final`
+
+Esses dois são quase opostos.
+
+## `abstract`
+
+Significa:
+
+```text
+Ainda precisa ser completado por uma subclasse.
+```
+
+Exemplo:
+
+```java
+public abstract void emitirSom();
+```
+
+## `final`
+
+Significa:
+
+```text
+Não pode ser alterado/sobrescrito/herdado, dependendo do caso.
+```
+
+O PDF explica que um método `final` não pode ser redefinido nas subclasses. Também explica que uma classe `final` não pode ter subclasses, e uma variável `final` não pode receber outro valor depois de inicializada. 
+
+---
+
+# 10. `final` em variável
+
+Exemplo:
+
+```java
+final int DIAS_LETIVOS = 200;
+```
+
+Depois disso, não pode:
+
+```java
+DIAS_LETIVOS = 180; // erro
+```
+
+Com objeto, cuidado:
+
+```java
+final Escola escola = new Escola();
+```
+
+Isso significa que a referência `escola` não pode apontar para outro objeto.
+
+Não pode:
+
+```java
+escola = new Escola(); // erro
+```
+
+Mas o objeto ainda pode mudar internamente, se tiver métodos para isso:
+
+```java
+escola.setNome("Nova Escola"); // pode, dependendo da classe
+```
+
+O PDF chama atenção justamente para isso: se a variável de referência é `final`, a referência não muda, mas isso não significa necessariamente que o objeto virou imutável. 
+
+---
+
+# 11. `final` em método
+
+```java
+public final String recuperarID() {
+    return identificador;
+}
+```
+
+Uma subclasse não pode fazer:
+
+```java
+@Override
+public String recuperarID() {
+    return "outro valor";
+}
+```
+
+Isso dá erro.
+
+Use `final` quando você quer proteger um comportamento da classe pai para que ninguém sobrescreva depois.
+
+---
+
+# 12. `final` em classe
+
+```java
+public final class Utilitario {
+}
+```
+
+Agora ninguém pode fazer:
+
+```java
+public class MinhaClasse extends Utilitario {
+}
+```
+
+Dá erro.
+
+Classe `final` não pode ser herdada.
+
+---
+
+# 13. Upcasting
+
+**Upcasting** é converter uma referência de subclasse para superclasse.
+
+Exemplo:
+
+```java
+Aluno aluno = new Aluno();
+Pessoa pessoa = aluno;
+```
+
+Ou direto:
+
+```java
+Pessoa pessoa = new Aluno();
+```
+
+Isso é seguro porque:
+
+```text
+Aluno é uma Pessoa.
+```
+
+Então todo `Aluno` pode ser tratado como `Pessoa`.
+
+---
+
+# 14. Downcasting
+
+**Downcasting** é o caminho contrário: pegar uma referência de superclasse e tentar tratá-la como subclasse.
+
+Exemplo:
+
+```java
+Pessoa pessoa = new Aluno();
+
+Aluno aluno = (Aluno) pessoa;
+```
+
+Aqui funciona porque o objeto real realmente é `Aluno`.
+
+Mas isso aqui é perigoso:
+
+```java
+Pessoa pessoa = new PessoaFisica();
+
+Aluno aluno = (Aluno) pessoa; // pode dar erro em tempo de execução
+```
+
+Antes de fazer downcasting, é bom verificar:
+
+```java
+if (pessoa instanceof Aluno) {
+    Aluno aluno = (Aluno) pessoa;
+}
+```
+
+O PDF explica que downcasting faz o compilador reinterpretar uma referência da superclasse como sendo da subclasse; já o upcasting reinterpreta uma referência da subclasse como superclasse. 
+
+---
+
+# 15. Interface
+
+Interface é um **contrato**.
+
+Ela diz:
+
+```text
+Quem implementar essa interface precisa ter estes métodos.
+```
+
+Exemplo:
+
+```java
+public interface Identificavel {
+    void atualizarID(String identificador);
+    String recuperarID();
+}
+```
+
+Uma classe implementa interface com `implements`:
+
+```java
+public class Pessoa implements Identificavel {
+    private String identificador;
+
+    @Override
+    public void atualizarID(String identificador) {
+        this.identificador = identificador;
+    }
+
+    @Override
+    public String recuperarID() {
+        return identificador;
+    }
+}
+```
+
+O PDF reforça que, quando uma classe implementa uma ou mais interfaces, ela deve implementar todos os métodos abstratos dessas interfaces. Também destaca que os métodos da interface são públicos, mesmo quando você omite o `public`. 
+
+---
+
+# 16. Interface versus classe abstrata
+
+Essa comparação cai fácil.
+
+## Classe abstrata
+
+Pode ter:
+
+```text
+atributos de instância
+construtor
+métodos concretos
+métodos abstratos
+estado interno
+```
+
+Exemplo:
+
+```java
+public abstract class Pessoa {
+    protected String nome;
+
+    public Pessoa(String nome) {
+        this.nome = nome;
+    }
+
+    public abstract void apresentar();
+}
+```
+
+## Interface
+
+É mais focada em contrato.
+
+Exemplo:
+
+```java
+public interface Autenticavel {
+    boolean autenticar(String senha);
+}
+```
+
+Uma classe pode herdar só de uma classe:
+
+```java
+class Aluno extends Pessoa
+```
+
+Mas pode implementar várias interfaces:
+
+```java
+class Aluno extends Pessoa implements Autenticavel, Identificavel
+```
+
+Resumo:
+
+```text
+abstract class = base com possível estado e comportamento comum
+interface = contrato de comportamento
+```
+
+---
+
+# 17. Implementando múltiplas interfaces
+
+Java não permite herança múltipla de classes:
+
+```java
+class C extends A, B // erro
+```
+
+Mas permite múltiplas interfaces:
+
+```java
+public class Pessoa implements Identificavel, Autenticavel {
+}
+```
+
+Exemplo:
+
+```java
+public interface Identificavel {
+    String getIdentificador();
+}
+```
+
+```java
+public interface Autenticavel {
+    boolean autenticar(String senha);
+}
+```
+
+```java
+public class Usuario implements Identificavel, Autenticavel {
+    private String id;
+    private String senha;
+
+    public Usuario(String id, String senha) {
+        this.id = id;
+        this.senha = senha;
+    }
+
+    @Override
+    public String getIdentificador() {
+        return id;
+    }
+
+    @Override
+    public boolean autenticar(String senha) {
+        return this.senha.equals(senha);
+    }
+}
+```
+
+---
+
+# 18. Interface com método sem corpo
+
+No estilo básico, método de interface fica assim:
+
+```java
+public interface Teste {
+    void executar();
+}
+```
+
+Não assim:
+
+```java
+public interface Teste {
+    void executar() {
+    }
+}
+```
+
+Esse segundo exemplo dá erro se você estiver tentando declarar um método abstrato comum. O PDF mostra uma questão em que a correção é remover o corpo `{ }` do método da interface e trocar por `;`. 
+
+Observação importante: em Java moderno existem métodos `default`, `static` e `private` em interfaces, que podem ter corpo. Mas para o básico da prova, guarde:
+
+```text
+método abstrato de interface termina com ;
+```
+
+---
+
+# 19. Interface e Collections
+
+Um exemplo real de interface em Java é:
+
+```java
+List
+```
+
+`List` é uma interface.
+`ArrayList` é uma classe concreta que implementa `List`.
+
+Exemplo:
+
+```java
+List<String> nomes = new ArrayList<>();
+```
+
+Aqui você programa contra a interface `List`, não contra a implementação concreta `ArrayList`.
+
+Isso deixa o código mais flexível.
+
+Depois você poderia trocar:
+
+```java
+List<String> nomes = new LinkedList<>();
+```
+
+sem mudar o resto do código que usa `nomes.add()`, `nomes.get()`, `nomes.remove()` etc.
+
+O PDF usa justamente o Framework Collections como exemplo real de interface, destacando `List` como interface e `ArrayList` como classe concreta que implementa seus métodos. 
+
+---
+
+# 20. Interface funcional
+
+Uma **interface funcional** é uma interface que possui **apenas um método abstrato**.
+
+Ela também é chamada de interface **SAM**:
+
+```text
+Single Abstract Method
+```
+
+Exemplo:
+
+```java
+@FunctionalInterface
+public interface Operacao {
+    int executar(int x);
+}
+```
+
+Tem só um método abstrato:
+
+```java
+int executar(int x);
+```
+
+Por isso pode ser usada com lambda.
+
+O PDF explica que uma interface com apenas um método abstrato é uma interface funcional/SAM, e cita `Comparator` e `Runnable` como exemplos comuns na API Java. 
+
+---
+
+# 21. `@FunctionalInterface`
+
+Essa annotation não é obrigatória, mas é útil.
+
+```java
+@FunctionalInterface
+public interface Operacao {
+    int executar(int x);
+}
+```
+
+Ela diz ao compilador:
+
+```text
+Verifique se essa interface realmente tem só um método abstrato.
+```
+
+Se você tentar colocar dois métodos abstratos:
+
+```java
+@FunctionalInterface
+public interface Operacao {
+    int executar(int x);
+    int calcular(int y);
+}
+```
+
+Dá erro.
+
+O PDF explica que `@FunctionalInterface` instrui o compilador a verificar o critério SAM e também comunica ao programador que aquela interface foi criada intencionalmente para ter um único método abstrato. 
+
+---
+
+# 22. Lambda
+
+Lambda é uma forma curta de implementar uma interface funcional.
+
+Exemplo sem lambda:
+
+```java
+Operacao dobro = new Operacao() {
+    @Override
+    public int executar(int x) {
+        return x * 2;
+    }
+};
+```
+
+Com lambda:
+
+```java
+Operacao dobro = x -> x * 2;
+```
+
+Uso:
+
+```java
+System.out.println(dobro.executar(5));
+```
+
+Saída:
+
+```text
+10
+```
+
+Outro exemplo:
+
+```java
+@FunctionalInterface
+interface Conversor {
+    double converter(double valor);
+}
+```
+
+```java
+Conversor celsiusParaFahrenheit = c -> (c * 9 / 5) + 32;
+
+System.out.println(celsiusParaFahrenheit.converter(30));
+```
+
+Saída:
+
+```text
+86.0
+```
+
+O PDF usa um exemplo de programação funcional com conversão de Celsius para Fahrenheit e destaca a expressão lambda no código. 
+
+---
+
+# 23. `Comparator` como interface funcional
+
+`Comparator` é uma interface funcional muito usada para ordenar.
+
+Exemplo:
+
+```java
+List<String> nomes = new ArrayList<>();
+
+nomes.add("Carlos");
+nomes.add("Ana");
+nomes.add("Bruno");
+
+nomes.sort((a, b) -> a.compareToIgnoreCase(b));
+
+System.out.println(nomes);
+```
+
+Saída:
+
+```text
+[Ana, Bruno, Carlos]
+```
+
+Aqui:
+
+```java
+(a, b) -> a.compareToIgnoreCase(b)
+```
+
+é uma lambda que implementa o método de comparação.
+
+---
+
+# 24. `Runnable` como interface funcional
+
+`Runnable` também é interface funcional.
+
+Exemplo:
+
+```java
+Runnable tarefa = () -> {
+    System.out.println("Executando tarefa...");
+};
+
+tarefa.run();
+```
+
+Saída:
+
+```text
+Executando tarefa...
+```
+
+Isso vai voltar com força no Tema 5, quando você estudar threads.
+
+---
+
+# 25. Interface aninhada
+
+O material também toca em interfaces como membros internos/aninhados.
+
+Exemplo simples:
+
+```java
+public class Sistema {
+    interface Imprimivel {
+        void imprimir();
+    }
+}
+```
+
+Isso é uma interface declarada dentro de uma classe.
+
+Dependendo do modificador de acesso (`public`, `private`, `protected`, default), ela pode ou não ser acessada fora daquela classe/pacote/hierarquia.
+
+Esse ponto é mais avançado, mas a ideia é: interfaces também podem ser membros de outras estruturas, e os modificadores de acesso afetam sua visibilidade.
+
+---
+
+# 26. O que você precisa dominar para a prova
+
+Se você souber isso, está bem no Tema 3:
+
+```text
+1. Explicar polimorfismo.
+2. Diferenciar tipo estático e tipo dinâmico.
+3. Entender vinculação dinâmica.
+4. Criar classe abstrata com abstract.
+5. Saber que classe abstrata não pode ser instanciada.
+6. Criar método abstrato sem corpo.
+7. Saber que subclasse concreta deve implementar método abstrato.
+8. Diferenciar método abstrato e método concreto.
+9. Usar @Override.
+10. Entender final em variável, método e classe.
+11. Fazer upcasting.
+12. Fazer downcasting com instanceof.
+13. Criar interface.
+14. Implementar interface com implements.
+15. Saber que interface é contrato.
+16. Diferenciar interface de classe abstrata.
+17. Implementar múltiplas interfaces.
+18. Saber que método abstrato de interface termina com ;
+19. Entender List como interface e ArrayList como implementação.
+20. Entender interface funcional/SAM.
+21. Usar @FunctionalInterface.
+22. Fazer lambda simples.
+23. Reconhecer Comparator e Runnable como interfaces funcionais.
+```
+
+---
+
+# Desafios para você resolver
+
+## Desafio 1 — Classe abstrata básica
+
+Crie uma classe abstrata:
+
+```text
+Animal
+```
+
+Com:
+
+```java
+public abstract void emitirSom();
+public void dormir()
+```
+
+Depois crie:
+
+```text
+Cachorro
+Gato
+Leao
+```
+
+Regras:
+
+`Cachorro` imprime `"Latir!"`.
+`Gato` imprime `"Miar!"`.
+`Leao` imprime `"Rugir!"`.
+Todos devem herdar de `Animal`.
+No `main`, crie:
+
+```java
+Animal a1 = new Cachorro();
+Animal a2 = new Gato();
+Animal a3 = new Leao();
+```
+
+E chame:
+
+```java
+emitirSom()
+dormir()
+```
+
+---
+
+## Desafio 2 — Polimorfismo com array
+
+Usando o desafio anterior, crie:
+
+```java
+Animal[] animais = new Animal[3];
+```
+
+Coloque dentro:
+
+```java
+new Cachorro()
+new Gato()
+new Leao()
+```
+
+Depois faça um `for`:
+
+```java
+for (Animal animal : animais) {
+    animal.emitirSom();
+}
+```
+
+Objetivo: ver polimorfismo acontecendo em sequência.
+
+---
+
+## Desafio 3 — Classe abstrata Pessoa
+
+Crie:
+
+```text
+Pessoa
+Fisica
+Juridica
+```
+
+`Pessoa` deve ser abstrata e ter:
+
+```text
+nome
+identificador
+```
+
+Métodos:
+
+```java
+public abstract void atualizarID(String identificador);
+public String recuperarID()
+public String getNome()
+```
+
+`Fisica` valida CPF com 11 dígitos.
+`Juridica` valida CNPJ com 14 dígitos.
+
+No `main`:
+
+```java
+Pessoa p1 = new Fisica("Alex");
+Pessoa p2 = new Juridica("Empresa XPTO");
+```
+
+Chame:
+
+```java
+p1.atualizarID("12345678901");
+p2.atualizarID("12345678000199");
+```
+
+---
+
+## Desafio 4 — `final`
+
+Crie uma classe `Escola` com:
+
+```java
+private final String codigo;
+private String nome;
+```
+
+Regras:
+
+`codigo` é definido no construtor e nunca muda.
+`nome` pode mudar com setter.
+Tente alterar `codigo` depois e veja o erro.
+
+Depois crie um método:
+
+```java
+public final String getCodigo()
+```
+
+Tente sobrescrever esse método em uma subclasse e veja o erro.
+
+---
+
+## Desafio 5 — Upcasting e downcasting
+
+Crie:
+
+```text
+Pessoa
+Aluno
+Professor
+```
+
+Depois faça:
+
+```java
+Pessoa p = new Aluno("Alex", "A001");
+```
+
+Tente chamar:
+
+```java
+p.getMatricula();
+```
+
+Veja o erro.
+
+Depois faça:
+
+```java
+if (p instanceof Aluno) {
+    Aluno aluno = (Aluno) p;
+    System.out.println(aluno.getMatricula());
+}
+```
+
+Explique em comentário:
+
+```java
+// Por que precisei fazer downcasting?
+```
+
+---
+
+## Desafio 6 — Interface simples
+
+Crie a interface:
+
+```java
+public interface Autenticavel {
+    boolean autenticar(String senha);
+}
+```
+
+Crie as classes:
+
+```text
+Usuario
+Administrador
+```
+
+As duas implementam `Autenticavel`.
+
+Regras:
+
+`Usuario` autentica com uma senha simples.
+`Administrador` autentica com senha + código extra.
+
+No `main`:
+
+```java
+Autenticavel a1 = new Usuario(...);
+Autenticavel a2 = new Administrador(...);
+```
+
+Chame:
+
+```java
+a1.autenticar("123");
+a2.autenticar("123");
+```
+
+---
+
+## Desafio 7 — Múltiplas interfaces
+
+Crie as interfaces:
+
+```java
+interface Identificavel {
+    String getIdentificador();
+}
+```
+
+```java
+interface Imprimivel {
+    void imprimir();
+}
+```
+
+Crie a classe:
+
+```java
+class Produto implements Identificavel, Imprimivel
+```
+
+`Produto` deve ter:
+
+```text
+codigo
+nome
+preco
+```
+
+Implemente os dois contratos.
+
+---
+
+## Desafio 8 — Interface versus classe abstrata
+
+Crie:
+
+```text
+Funcionario
+Professor
+Diretor
+```
+
+`Funcionario` deve ser uma classe abstrata com:
+
+```text
+nome
+salario
+```
+
+E método abstrato:
+
+```java
+public abstract double calcularBonus();
+```
+
+Agora crie uma interface:
+
+```java
+interface Autenticavel {
+    boolean autenticar(String senha);
+}
+```
+
+`Diretor` deve herdar de `Funcionario` e implementar `Autenticavel`.
+
+`Professor` só herda de `Funcionario`.
+
+Objetivo: treinar:
+
+```text
+extends
+implements
+abstract
+@Override
+polimorfismo
+```
+
+---
+
+## Desafio 9 — List e ArrayList
+
+Faça:
+
+```java
+List<String> nomes = new ArrayList<>();
+```
+
+Adicione nomes, remova nomes e imprima.
+
+Depois troque:
+
+```java
+ArrayList<String> nomes = new ArrayList<>();
+```
+
+por:
+
+```java
+List<String> nomes = new ArrayList<>();
+```
+
+Responda:
+
+```java
+// Por que é melhor declarar como List?
+```
+
+---
+
+## Desafio 10 — Interface funcional
+
+Crie:
+
+```java
+@FunctionalInterface
+interface Operacao {
+    int executar(int x);
+}
+```
+
+No `main`, crie lambdas:
+
+```java
+Operacao dobrar = x -> x * 2;
+Operacao quadrado = x -> x * x;
+Operacao triplo = x -> x * 3;
+```
+
+Teste:
+
+```java
+System.out.println(dobrar.executar(5));
+System.out.println(quadrado.executar(5));
+System.out.println(triplo.executar(5));
+```
+
+---
+
+## Desafio 11 — Conversor com lambda
+
+Crie:
+
+```java
+@FunctionalInterface
+interface Conversor {
+    double converter(double valor);
+}
+```
+
+Depois crie:
+
+```java
+Conversor celsiusParaFahrenheit = c -> (c * 9 / 5) + 32;
+Conversor kmParaMilhas = km -> km * 0.621371;
+```
+
+Teste os dois.
+
+---
+
+## Desafio 12 — Comparator com lambda
+
+Crie uma classe:
+
+```text
+Aluno
+```
+
+Com:
+
+```text
+nome
+nota
+```
+
+Crie uma lista de alunos.
+
+Ordene por nome:
+
+```java
+alunos.sort((a, b) -> a.getNome().compareToIgnoreCase(b.getNome()));
+```
+
+Depois ordene por nota:
+
+```java
+alunos.sort((a, b) -> Double.compare(a.getNota(), b.getNota()));
+```
+
+Objetivo: entender `Comparator` como interface funcional.
+
+---
+
+## Desafio 13 — Projeto chefão do Tema 3
+
+Crie um projeto:
+
+```text
+SistemaPolimorfismoEscola
+```
+
+Classes/interfaces obrigatórias:
+
+```text
+Pessoa
+Aluno
+Funcionario
+Professor
+Diretor
+Autenticavel
+Identificavel
+Imprimivel
+Escola
+Principal
+```
+
+Regras:
+
+`Pessoa` deve ser abstrata.
+`Pessoa` tem `nome` e `identificador`.
+`Pessoa` tem método abstrato `apresentar()`.
+`Aluno` herda de `Pessoa`.
+`Funcionario` herda de `Pessoa` e é abstrata.
+`Professor` herda de `Funcionario`.
+`Diretor` herda de `Funcionario` e implementa `Autenticavel`.
+`Identificavel` exige `getIdentificador()`.
+`Imprimivel` exige `imprimir()`.
+`Escola` guarda `List<Pessoa> pessoas`.
+No `main`, crie uma lista com `Aluno`, `Professor` e `Diretor`.
+Percorra a lista chamando `apresentar()`.
+
+Obrigatório usar:
+
+```text
+abstract
+extends
+implements
+@Override
+final
+upcasting
+downcasting
+interface
+List
+ArrayList
+lambda ou Comparator
+```
